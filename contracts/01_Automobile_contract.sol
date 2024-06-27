@@ -11,10 +11,10 @@ contract Automobile {
     mapping(string => bool) private validVins; // mapping to check for valid vin
     uint256 private price;
     bool private isSold;
-    uint256 private feePercentage = 15; // 15% fee percentage
+    uint256 private feePercentage = 10; // 10% fee percentage
 
     //Events
-    event Purchased(address _buyer, uint256 _price, string _vehicleVIN);
+    event Purchased(address indexed _buyer, uint256 _price, string _vehicleVIN);
     event vinAdded(string _vehicleVIN);
 
     //Constructor to inistilaise the contract with sellers address and price of the vehicle
@@ -70,7 +70,6 @@ contract Automobile {
         buyer = msg.sender;
         vehicleVIN = _vin;
         isSold = true;
-        payable(seller).transfer(msg.value);
         // remove vin from valid vins
         validVins[_vin] = false;
         // remove vin from array of vins
