@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-contract Automobile {
+// import reentrency guard from openzeppelin
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+contract Automobile is ReentrancyGuard {
     // Variables
     address private seller;
     address private owner;
     address private buyer;
-    bool internal locked;
     string private vehicleVIN;
     string[] private vehicleVINs;
     mapping(string => bool) private validVins; // mapping to check for valid vin
@@ -19,12 +21,7 @@ contract Automobile {
         require(msg.sender == seller, "Only seller can call this function");
         _;
     }
-    modifier noReentrancy() {
-        require(!locked, 'No reentrancy');
-        locked = true;
-        _;
-        locked = false;
-    }
+
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can call this function");
         _;
@@ -60,7 +57,7 @@ contract Automobile {
     }
 
     // function to purchase vehicle
-    function purchaseVehicle(string memory _vin) public payable noReentrancy {
+    function purchaseVehicle(string memory _vin) public payable nonReentrant {
         require(msg.value >= price, "Insufficient amount");
         require(!isSold, "Vehicle is already sold.");
         require(validVins[_vin] == true, "Invalid VIN");
