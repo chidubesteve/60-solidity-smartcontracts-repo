@@ -6,12 +6,29 @@ contract Automobile {
     address private seller;
     address private owner;
     address private buyer;
+    bool internal locked;
     string private vehicleVIN;
     string[] private vehicleVINs;
     mapping(string => bool) private validVins; // mapping to check for valid vin
     uint256 private price;
     bool private isSold;
     uint256 private feePercentage = 10; // 10% fee percentage
+
+    // Modifiers
+    modifier onlySeller() {
+        require(msg.sender == seller, "Only seller can call this function");
+        _;
+    }
+    modifier noReentrancy() {
+        require(!locked, 'No reentrancy');
+        locked = true;
+        _;
+        locked = false;
+    }
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
 
     //Events
     event Purchased(address indexed _buyer, uint256 _price, string _vehicleVIN);
@@ -23,15 +40,6 @@ contract Automobile {
         owner = msg.sender;
     }
 
-    // Modifiers
-    modifier onlySeller() {
-        require(msg.sender == seller, "Only seller can call this function");
-        _;
-    }
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
-    }
     // Functions
 
     // function to add new vin
@@ -51,8 +59,8 @@ contract Automobile {
         isSold = false;
     }
 
-    // function to prchase vehicle
-    function purchaseVehicle(string memory _vin) public payable {
+    // function to purchase vehicle
+    function purchaseVehicle(string memory _vin) public payable noReentrancy {
         require(msg.value >= price, "Insufficient amount");
         require(!isSold, "Vehicle is already sold.");
         require(validVins[_vin] == true, "Invalid VIN");
@@ -60,20 +68,14 @@ contract Automobile {
         uint256 fee = (msg.value * feePercentage) / 100;
         require(msg.value >= fee + price, "Insufficient amount including fee");
 
-        // transfer fee to owner
-        payable(owner).transfer(fee);
-
-        // transfer remaining amount to seller
-        uint256 finalPrice = msg.value - fee;
-        payable(seller).transfer(finalPrice);
-
+        // Update the state before making any transfer
         buyer = msg.sender;
         vehicleVIN = _vin;
         isSold = true;
-        // remove vin from valid vins
         validVins[_vin] = false;
-        // remove vin from array of vins
-        for (uint i = 0; i < vehicleVINs.length - 1; i++) {
+
+        // Remove VIN from array of VINs
+        for (uint i = 0; i < vehicleVINs.length; i++) {
             if (
                 keccak256(abi.encodePacked(vehicleVINs[i])) ==
                 keccak256(abi.encodePacked(_vin))
@@ -83,6 +85,13 @@ contract Automobile {
                 break;
             }
         }
+
+        // Transfer fee to owner
+        payable(owner).transfer(fee);
+
+        // Transfer remaining amount to seller
+        uint256 finalPrice = msg.value - fee;
+        payable(seller).transfer(finalPrice);
 
         emit Purchased(buyer, price, vehicleVIN);
     }
@@ -137,7 +146,7 @@ contract Automobile {
         return address(this).balance;
     }
 
-    function getFeePercentage() public onlyOwner view returns (uint256) {
+    function getFeePercentage() public view onlyOwner returns (uint256) {
         return feePercentage;
     }
 
