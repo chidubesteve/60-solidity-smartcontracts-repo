@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract Insurance is Ownable {
+contract Insurance is Ownable,ReentrancyGuard {
     /// @title Insurance
     /// @author @chidubesteve(https://github.com/chidubesteve)
     /// @notice This is an insurance policy smart contract
@@ -281,7 +281,7 @@ contract Insurance is Ownable {
     /// @dev this internal function will send ether to the inputed address
     /// @param  _to the address to send the ether to
     /// @param  _amount the amount of ether to send
-    function _sendEther(address payable _to, uint _amount) internal {
+    function _sendEther(address payable _to, uint _amount) internal nonReentrant() {
         (bool sent, bytes memory data) = _to.call{value: _amount}("");
         require(sent, "Failed to send Ether");
         // console.log(data);
