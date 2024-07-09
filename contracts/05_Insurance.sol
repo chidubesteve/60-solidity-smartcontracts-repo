@@ -4,38 +4,38 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract Insurance is Ownable,ReentrancyGuard {
-    /// @title Insurance
-    /// @author @chidubesteve(https://github.com/chidubesteve)
-    /// @notice This is an insurance policy smart contract
-    /// @dev Below is a robust example of a Solidity smart contract designed for the insurance industry. This smart contract includes basic functionalities, such as creating policies, paying premiums, filing claims, and settling claims
-    // structs
-    /// @dev This struct emulates the data model of a policy */
-    struct Policy {
-        uint256 policyId;
-        uint256 startDate;
-        uint256 endDate;
-        uint256 premiumAmount;
-        uint256 coverageAmount;
-        uint256 deductible;
-        bool isActive;
-    }
+/// @title Insurance
+/// @author @chidubesteve(https://github.com/chidubesteve)
+/// @notice This is an insurance policy smart contract
+/// @dev Below is a robust example of a Solidity smart contract designed for the insurance industry. This smart contract includes basic functionalities, such as creating policies, paying premiums, filing claims, and settling claims
+// structs
+/// @dev This struct emulates the data model of a policy */
+struct Policy {
+    uint256 policyId;
+    uint256 startDate;
+    uint256 endDate;
+    uint256 premiumAmount;
+    uint256 coverageAmount;
+    uint256 deductible;
+    bool isActive;
+}
 
-    ///@dev This struct emulates the data model of a claim */
-    struct Claim {
-        uint256 policyId;
-        uint256 claimId;
-        uint256 claimDate;
-        uint256 claimAmount;
-        string description;
-        bool isApproved;
-    }
+///@dev This struct emulates the data model of a claim */
+struct Claim {
+    uint256 policyId;
+    uint256 claimId;
+    uint256 claimDate;
+    uint256 claimAmount;
+    string description;
+    bool isApproved;
+}
 
-    /// @dev Relationships:
-    /// Customer - Policy: One-to-Many (A customer can have multiple policies)
-    /// Policy - Claim: One-to-Many (A policy can have multiple claims)
-    /// Policy - Payment: One-to-Many (A policy can have multiple payments)
+/// @dev Relationships:
+/// Customer - Policy: One-to-Many (A customer can have multiple policies)
+/// Policy - Claim: One-to-Many (A policy can have multiple claims)
+/// Policy - Payment: One-to-Many (A policy can have multiple payments)
 
+contract Insurance is Ownable, ReentrancyGuard {
     // variables
     uint private policyCount;
     uint private claimCount;
@@ -89,7 +89,7 @@ contract Insurance is Ownable,ReentrancyGuard {
             insuredAddresses[policyId][msg.sender] == true,
             "Only the policy holder can call this"
         );
-        if(policies[policyId].isActive != true) revert PolicyNotActive(); 
+        if (policies[policyId].isActive != true) revert PolicyNotActive();
         _;
     }
     modifier nonZeroAddress(address _caller) {
@@ -281,7 +281,10 @@ contract Insurance is Ownable,ReentrancyGuard {
     /// @dev this internal function will send ether to the inputed address
     /// @param  _to the address to send the ether to
     /// @param  _amount the amount of ether to send
-    function _sendEther(address payable _to, uint _amount) internal nonReentrant() {
+    function _sendEther(
+        address payable _to,
+        uint _amount
+    ) internal nonReentrant {
         (bool sent, bytes memory data) = _to.call{value: _amount}("");
         require(sent, "Failed to send Ether");
         // console.log(data);
